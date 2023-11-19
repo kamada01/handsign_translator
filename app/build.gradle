@@ -96,4 +96,7 @@ dependencies {
 
     // MediaPipe Library
     implementation 'com.google.mediapipe:tasks-vision:0.10.0'
+
+    //ort
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:latest.release'
 }

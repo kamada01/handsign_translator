@@ -15,23 +15,33 @@
  */
 package com.google.mediapipe.examples.handlandmarker
 
+import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
 import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.mediapipe.examples.handlandmarker.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
     private lateinit var activityMainBinding: ActivityMainBinding
     private val viewModel : MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("Creation","testing")
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
     }
 
+    // Create an OrtSession with the given OrtEnvironment
+    private fun createORTSession( ortEnvironment: OrtEnvironment) : OrtSession {
+        val modelBytes = resources.openRawResource( R.raw.sklearn_model ).readBytes()
+        return ortEnvironment.createSession( modelBytes )
+    }
     override fun onBackPressed() {
        finish()
     }

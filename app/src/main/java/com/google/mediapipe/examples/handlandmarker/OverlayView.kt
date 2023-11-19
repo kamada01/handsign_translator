@@ -1,36 +1,32 @@
-/*
- * Copyright 2022 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *             http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.google.mediapipe.examples.handlandmarker
 
+import ai.onnxruntime.OnnxTensor
+import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import java.nio.FloatBuffer
 import kotlin.math.max
 import kotlin.math.min
 
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
-
+//    var textView: TextView = findViewById(R.id.textView)
+    private fun createORTSession( ortEnvironment: OrtEnvironment ) : OrtSession {
+        val modelBytes = resources.openRawResource( R.raw.sklearn_model ).readBytes()
+        return ortEnvironment.createSession( modelBytes )
+    }
+    val ortEnvironment = OrtEnvironment.getEnvironment()
+    val ortSession = createORTSession( ortEnvironment )
     private var results: HandLandmarkerResult? = null
     private var linePaint = Paint()
     private var pointPaint = Paint()
@@ -61,19 +57,51 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.strokeWidth = LANDMARK_STROKE_WIDTH
         pointPaint.style = Paint.Style.FILL
     }
+    fun clamp(coordinate:Float): Float {
+        if (coordinate < 0) return 0.0F
+        if (coordinate > 1) return 1.0F
+        return coordinate
+    }
+    fun runPrediction(inputs: List<Float>, ortSession: OrtSession, ortEnvironment: OrtEnvironment): String {
+        // Ensure that exactly 42 floats are passed
+        if (inputs.size != 42) {
+            throw IllegalArgumentException("Expected 42 inputs, but got ${inputs.size}")
+        }
+
+        // Get the name of the input node
+        val inputName = ortSession.inputNames.iterator().next()
+
+        // Create input tensor with floatBufferInputs of shape (1, 42)
+        val floatBufferInputs = FloatBuffer.wrap(inputs.toFloatArray())
+        val inputTensor = OnnxTensor.createTensor(ortEnvironment, floatBufferInputs, longArrayOf(1, 42))
+
+        // Run the model and handle output
+        val outputTensor: Array<String>
+        inputTensor.use { tensor ->
+            val results = ortSession.run(mapOf(inputName to tensor))
+            outputTensor = results[0].value as Array<String>
+        }
+        return outputTensor[0]
+    }
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { handLandmarkerResult ->
             for (landmark in handLandmarkerResult.landmarks()) {
+                var hand_coordinates = ArrayList<Float>()
                 for (normalizedLandmark in landmark) {
+                    var normalized_x = clamp(normalizedLandmark.x())
+                    var normalized_y = clamp(normalizedLandmark.y())
+                    hand_coordinates.add(normalized_x)
+                    hand_coordinates.add(normalized_y)
                     canvas.drawPoint(
-                        normalizedLandmark.x() * imageWidth * scaleFactor,
-                        normalizedLandmark.y() * imageHeight * scaleFactor,
+                        normalized_x * imageWidth * scaleFactor,
+                        normalized_y * imageHeight * scaleFactor,
                         pointPaint
                     )
                 }
-
+                var prediction = runPrediction(hand_coordinates,ortSession,ortEnvironment)
+                Log.d("Logging",prediction)
                 HandLandmarker.HAND_CONNECTIONS.forEach {
                     canvas.drawLine(
                         handLandmarkerResult.landmarks().get(0).get(it!!.start())
