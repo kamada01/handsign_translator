@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "304056476448",
+    "project_id": "handsign-translator",
+    "storage_bucket": "handsign-translator.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:304056476448:android:9589bfed59e0f8945d6d45",
+        "android_client_info": {
+          "package_name": "com.google.mediapipe.examples.handsign_translator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7x0Z-EFkTwY6giKWB_0QpJengotlHtCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
