@@ -287,7 +287,7 @@ class HandLandmarkerHelper(
 
                     val predictedClassIndex = maxIndex
                     predictedAlphabet = alphabet[predictedClassIndex].toString()
-                    Log.d("Predicted Class", predictedAlphabet)
+//                    Log.d("Predicted Class", predictedAlphabet)
 
                 } catch (e:Exception) {
                     Log.e("ClassificationError", "Error during classification: ${e.message}")

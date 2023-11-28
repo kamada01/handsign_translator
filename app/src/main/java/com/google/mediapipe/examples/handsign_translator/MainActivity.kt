@@ -15,21 +15,25 @@
  */
 package com.google.mediapipe.examples.handsign_translator
 
+import android.R.attr.button
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModel
 import com.google.mediapipe.examples.handsign_translator.databinding.ActivityMainBinding
-import android.util.Log
-import android.widget.TextView
-import com.google.common.flogger.backend.LogData
-import com.google.mediapipe.tasks.vision.core.RunningMode
-import java.io.IOException
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
     private lateinit var handLandmarkerHelper: HandLandmarkerHelper
     private lateinit var mainViewModel: MainViewModel
     private lateinit var resultTextView: TextView
+    private lateinit var startButton: Button
+    private val sharedState: SharedState by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +42,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(activityMainBinding.root)
 
         resultTextView = findViewById(R.id.resultTextView)
+        sharedState.resultsTextView = resultTextView
+
+
+        startButton = findViewById(R.id.start_button)
+        startButton.setOnClickListener() {
+            sharedState.state = !sharedState.state
+        }
 
     }
 

@@ -22,6 +22,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.camera.core.Preview
@@ -38,6 +39,7 @@ import androidx.navigation.Navigation
 import com.google.mediapipe.examples.handsign_translator.HandLandmarkerHelper
 import com.google.mediapipe.examples.handsign_translator.MainViewModel
 import com.google.mediapipe.examples.handsign_translator.R
+import com.google.mediapipe.examples.handsign_translator.SharedState
 import com.google.mediapipe.examples.handsign_translator.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.util.concurrent.ExecutorService
@@ -229,16 +231,19 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     // image height/width to scale and place the landmarks properly through
     // OverlayView
     var text = ""
-    override fun onResults(
-        resultBundle: HandLandmarkerHelper.ResultBundle
-    ) {
+    private val sharedState: SharedState by activityViewModels()
+    override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
+
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
                 val resultsTextView = activity?.findViewById<TextView>(R.id.resultTextView)
-                text += resultBundle.gestures
-                resultsTextView?.text = "Predicted Alphabet: ${text}"
-
-                // Pass necessary information to OverlayView for drawing on the canvas
+                if (sharedState.state) {
+                    text += resultBundle.gestures
+                    resultsTextView?.text = "${text}"
+                } else {
+                    resultsTextView?.text = "Press Button"
+                    text = ""
+                }
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
                     resultBundle.inputImageHeight,
