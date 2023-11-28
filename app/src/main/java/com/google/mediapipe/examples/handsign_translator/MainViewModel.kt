@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.mediapipe.examples.handlandmarker
+package com.google.mediapipe.examples.handsign_translator
 
 import androidx.lifecycle.ViewModel
 

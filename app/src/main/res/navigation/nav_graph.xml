@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/permissions_fragment"
-        android:name="com.google.mediapipe.examples.handlandmarker.fragment.PermissionsFragment"
+        android:name="com.google.mediapipe.examples.handsign_translator.fragment.PermissionsFragment"
         android:label="PermissionsFragment">
 
         <action
@@ -34,7 +34,7 @@
 
     <fragment
         android:id="@+id/camera_fragment"
-        android:name="com.google.mediapipe.examples.handlandmarker.fragment.CameraFragment"
+        android:name="com.google.mediapipe.examples.handsign_translator.fragment.CameraFragment"
         android:label="CameraFragment">
 
         <action

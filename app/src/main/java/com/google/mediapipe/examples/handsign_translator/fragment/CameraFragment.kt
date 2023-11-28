@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.mediapipe.examples.handlandmarker.fragment
+package com.google.mediapipe.examples.handsign_translator.fragment
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -22,7 +22,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.camera.core.Preview
 import androidx.camera.core.CameraSelector
@@ -35,12 +35,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
-import com.google.mediapipe.examples.handlandmarker.HandLandmarkerHelper
-import com.google.mediapipe.examples.handlandmarker.MainViewModel
-import com.google.mediapipe.examples.handlandmarker.R
-import com.google.mediapipe.examples.handlandmarker.databinding.FragmentCameraBinding
+import com.google.mediapipe.examples.handsign_translator.HandLandmarkerHelper
+import com.google.mediapipe.examples.handsign_translator.MainViewModel
+import com.google.mediapipe.examples.handsign_translator.R
+import com.google.mediapipe.examples.handsign_translator.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
-import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -145,7 +144,7 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
                 minHandPresenceConfidence = viewModel.currentMinHandPresenceConfidence,
                 maxNumHands = viewModel.currentMaxHands,
                 currentDelegate = viewModel.currentDelegate,
-                handLandmarkerHelperListener = this
+                handLandmarkerHelperListener = this,
             )
         }
     }
@@ -234,6 +233,8 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
+                val resultsTextView = activity?.findViewById<TextView>(R.id.resultTextView)
+                resultsTextView?.text = "Predicted Alphabet: ${resultBundle.gestures}"
 
                 // Pass necessary information to OverlayView for drawing on the canvas
                 fragmentCameraBinding.overlay.setResults(
