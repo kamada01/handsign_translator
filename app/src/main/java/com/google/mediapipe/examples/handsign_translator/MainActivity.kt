@@ -15,16 +15,14 @@
  */
 package com.google.mediapipe.examples.handsign_translator
 
-import android.R.attr.button
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import com.google.mediapipe.examples.handsign_translator.databinding.ActivityMainBinding
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -34,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultTextView: TextView
     private lateinit var startButton: Button
     private val sharedState: SharedState by viewModels()
+    var spellChecker: SpellChecker? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,12 +41,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(activityMainBinding.root)
 
         resultTextView = findViewById(R.id.resultTextView)
-        sharedState.resultsTextView = resultTextView
 
+        try {
+            val inputStream = this.assets.open("words.txt")
+            val bufferedReader = inputStream.bufferedReader()
+            spellChecker = SpellChecker.loadFromReader(bufferedReader).build()
+        } catch (e: Exception) {
+            throw IOException("Error reading word txt: ${e}")
+        }
 
         startButton = findViewById(R.id.start_button)
+        startButton.text = "Translate"
         startButton.setOnClickListener() {
-            sharedState.state = !sharedState.state
+            sharedState.start = !sharedState.start
         }
 
     }

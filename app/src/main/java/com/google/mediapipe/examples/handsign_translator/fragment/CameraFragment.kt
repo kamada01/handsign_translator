@@ -37,11 +37,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
 import com.google.mediapipe.examples.handsign_translator.HandLandmarkerHelper
+import com.google.mediapipe.examples.handsign_translator.MainActivity
 import com.google.mediapipe.examples.handsign_translator.MainViewModel
 import com.google.mediapipe.examples.handsign_translator.R
 import com.google.mediapipe.examples.handsign_translator.SharedState
+import com.google.mediapipe.examples.handsign_translator.SpellChecker
 import com.google.mediapipe.examples.handsign_translator.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -64,10 +67,14 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
-
+    private var mainActivity : MainActivity? = null
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
 
+    override fun onStart() {
+        super.onStart()
+        mainActivity = activity as MainActivity
+    }
     override fun onResume() {
         super.onResume()
         // Make sure that all permissions are still present, since the
@@ -117,6 +124,7 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        mainActivity = activity as MainActivity
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
@@ -232,17 +240,33 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     // OverlayView
     var text = ""
     private val sharedState: SharedState by activityViewModels()
-    override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
 
+    private fun getWord(prediction : String): List<String>? {
+        val suggestion = mainActivity?.spellChecker?.suggest(prediction,1)
+        return suggestion
+    }
+    override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
                 val resultsTextView = activity?.findViewById<TextView>(R.id.resultTextView)
-                if (sharedState.state) {
-                    text += resultBundle.gestures
-                    resultsTextView?.text = "${text}"
+                val startButton = activity?.findViewById<Button>(R.id.start_button)
+                if (sharedState.start) {
+                    if (text == "") {
+                        text += resultBundle.gestures
+                    } else if(text[text.length - 1].toString() != resultBundle.gestures) {
+                        text += resultBundle.gestures
+                    }
+//                    var correctedWordList = getWord(text)
+//                    if (!correctedWordList.isNullOrEmpty()) {
+//                        resultsTextView?.text = correctedWordList.get(0)
+//                        text = correctedWordList.get(0)
+//                    }
+                    resultsTextView?.text = text
+                    startButton?.text = "Stop"
                 } else {
                     resultsTextView?.text = "Press Button"
                     text = ""
+                    startButton?.text = "Translate"
                 }
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
