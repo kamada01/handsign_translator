@@ -228,13 +228,15 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     // Update UI after hand have been detected. Extracts original
     // image height/width to scale and place the landmarks properly through
     // OverlayView
+    var text = ""
     override fun onResults(
         resultBundle: HandLandmarkerHelper.ResultBundle
     ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
                 val resultsTextView = activity?.findViewById<TextView>(R.id.resultTextView)
-                resultsTextView?.text = "Predicted Alphabet: ${resultBundle.gestures}"
+                text += resultBundle.gestures
+                resultsTextView?.text = "Predicted Alphabet: ${text}"
 
                 // Pass necessary information to OverlayView for drawing on the canvas
                 fragmentCameraBinding.overlay.setResults(

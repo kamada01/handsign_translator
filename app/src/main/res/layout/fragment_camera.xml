@@ -17,12 +17,4 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="399dp"
-        android:layout_height="51dp"
-        android:text="TextView"
-        app:layout_anchor="@+id/view_finder"
-        app:layout_anchorGravity="bottom|center" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
