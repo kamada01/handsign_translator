@@ -32,7 +32,6 @@ class BKTree( private val distanceFunc : (String,String) -> Int ) {
         else{
             add( node.children[distance] , word )
         }
-
     }
 
     fun getSpellSuggestion( word: String , tolerance : Int = 1 ) : List<String> {

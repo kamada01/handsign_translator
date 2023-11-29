@@ -41,6 +41,7 @@ import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.atan2
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import kotlin.math.sqrt
 
 
 class HandLandmarkerHelper(
@@ -54,7 +55,6 @@ class HandLandmarkerHelper(
     val context: Context,
     // this listener is only used when running in RunningMode.LIVE_STREAM
     val handLandmarkerHelperListener: LandmarkerListener? = null,
-
 ) {
 
     // For this example this needs to be a var so it can be reset on changes.
@@ -188,29 +188,36 @@ class HandLandmarkerHelper(
 
         return stringBuilder.toString()
     }
+    // squaring lambda
+    val square: (Double) -> Double = { num -> num * num }
+    private fun calculatePenalty(frameOne:  MutableList<Double>, frameTwo: MutableList<Double>) : Double {
+        var euclidianPenalty : Double = 0.0
+        var anglePenalty : Double = 0.0
+        for (i in frameOne.indices) {
+            // calculate euclidian distance between coordinates
+            if (i <= 65) {
+                if ((i + 1) % 3 == 0) {
+                    var x_1 = frameOne[i - 2]
+                    var y_1 = frameOne[i - 1]
+                    var z_1 = frameOne[i]
 
-//    private var startProcessingTime = SystemClock.elapsedRealtime()
-//    private var counter = 0
-    private fun classifyGestures(handLandmarks: MutableList<MutableList<NormalizedLandmark>>): String {
-//        runs around 30 FPS based on expermeintal results
-//        counter += 1
-//        val endProcessingTime = SystemClock.elapsedRealtime()
-//        if (endProcessingTime - startProcessingTime >= 1000) {
-//            Log.d("FPS",counter.toString())
-//
-//            counter = 0
-//            startProcessingTime = SystemClock.elapsedRealtime()
-//        }
-        val inputTensor = gestureClassifier!!.getInputTensor(0)
-        val inputShape = inputTensor.shape()
-        val inputDataType = inputTensor.dataType()
+                    var x_2 = frameTwo[i - 2]
+                    var y_2 = frameTwo[i - 1]
+                    var z_2 = frameTwo[i]
 
-        var predictedAlphabet: String = ""
+                    euclidianPenalty += sqrt(square(x_2 - x_1) + square(y_2 - y_1) + square(z_2 - z_1))
+                }
+            } else {
+                // calculate quadratic penalty between the angles
+                var theta_1 = frameOne[i]
+                var theta_2 = frameTwo[i]
+                anglePenalty = square(abs(theta_2 - theta_1 ))
+            }
+        }
+        return euclidianPenalty + anglePenalty
+    }
 
-        // Print the input tensor information to logcat
-        //Log.d("ModelInfo", "Input Tensor Shape: ${inputShape.contentToString()}")
-        //Log.d("ModelInfo", "Input Tensor Data Type: $inputDataType")
-
+    private fun LandmarkToTensorInput(handLandmarks: MutableList<MutableList<NormalizedLandmark>>) : MutableList<Double> {
         // landmarks coordinates for each frame
         // [[0.x, 0.y, 0.z], [1.x, 1.y, 1.z]...]
         val coordinateList = mutableListOf<DoubleArray>()
@@ -231,7 +238,7 @@ class HandLandmarkerHelper(
         // store calculated angles for all joint sets
         val angles = mutableListOf<Double>()
 
-        // compute joint angales and store in angles
+        // compute joint angles and store in angles
         if (coordinateList.size == 21) {
             for (joint in jointAngles) {
                 val a = doubleArrayOf(coordinateList[joint[0]][0], coordinateList[joint[0]][1])
@@ -248,23 +255,23 @@ class HandLandmarkerHelper(
                 angles.add(angle)
             }
         }
-
         // combine joint coordinates with angles in single frame
-        val oneframe = mutableListOf<Double>()
+        var oneframe = mutableListOf<Double>()
 
         oneframe.addAll(coordinateFlattened)
         oneframe.addAll(angles)
 
-        if (oneframe.size == 85) {
-            tenframes.add(oneframe)
-        }
+        return oneframe
+    }
 
 
-        if (tenframes.size < seqLength){
-            return ""
-        } else if (tenframes.size == seqLength) {
-
-            val tenframeList: List<List<Float>> = convertDoubleListToFloat(tenframes).map { it.toList() }
+    //    private var startProcessingTime = SystemClock.elapsedRealtime()
+    //    private var counter = 0
+    private fun classifyGestures(tensorInput: MutableList<MutableList<Double>>): String {
+//        runs around 30 FPS based on expermeintal results
+        var predictedAlphabet: String = ""
+        if (tensorInput.size == seqLength) {
+            val tenframeList: List<List<Float>> = convertDoubleListToFloat(tensorInput).map { it.toList() }
             val inputArray = listOf(tenframeList)
 
             val nestedArray: Array<Array<Array<Float>>> =
@@ -297,7 +304,6 @@ class HandLandmarkerHelper(
 
                     val predictedClassIndex = maxIndex
                     predictedAlphabet = alphabet[predictedClassIndex].toString()
-//                    Log.d("Predicted Class", predictedAlphabet)
 
                 } catch (e:Exception) {
                     Log.e("ClassificationError", "Error during classification: ${e.message}")
@@ -305,7 +311,7 @@ class HandLandmarkerHelper(
             }
         }
         // ten frames are cleared
-        tenframes.clear()
+//        tenframes.clear()
 
 //        val endProcessingTime = SystemClock.elapsedRealtime()
         //Log.d(TAG, "Processing time: ${endProcessingTime - startProcessingTime} ms")
@@ -464,20 +470,43 @@ class HandLandmarkerHelper(
     }
 
     // Return the landmark result to this HandLandmarkerHelper's caller
+    // The caller being CameraFragment
+    var reference : MutableList<Double> = mutableListOf()
+    var tenFrames : MutableList<MutableList<Double>> = mutableListOf()
+    var start = true
+    var PENALTY_THRESHOLD = 300
     private fun returnLivestreamResult(
         result: HandLandmarkerResult,
         input: MPImage
     ) {
         val finishTimeMs = SystemClock.uptimeMillis()
         val inferenceTime = finishTimeMs - result.timestampMs()
-
+        var predictedAlphabet : String = ""
+        if (SharedState.buttonState == 1) {
+            if (result.landmarks().size == 1) {
+                if (start) {
+                    reference = LandmarkToTensorInput(result.landmarks())
+                    start = false
+                }else {
+                    var newFrame = LandmarkToTensorInput(result.landmarks())
+                    var pen = calculatePenalty(reference,newFrame)
+//                    Log.d("penalty",pen.toString())
+                    if (calculatePenalty(reference,newFrame) > PENALTY_THRESHOLD) {
+                        reference = LandmarkToTensorInput(result.landmarks())
+                    }
+                }
+                var tenFrames : MutableList<MutableList<Double>> = mutableListOf(reference,reference,reference,reference,reference,reference,reference,reference,reference,reference)
+                predictedAlphabet = classifyGestures(tenFrames)
+//                Log.d("Test inference",predictedAlphabet)
+            }
+        }
         handLandmarkerHelperListener?.onResults(
             ResultBundle(
                 listOf(result),
                 inferenceTime,
                 input.height,
                 input.width,
-                classifyGestures(result.landmarks())
+                predictedAlphabet
             )
         )
     }

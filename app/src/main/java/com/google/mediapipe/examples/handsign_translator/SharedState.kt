@@ -5,8 +5,10 @@ import android.view.textservice.TextInfo
 import android.widget.TextView
 import androidx.lifecycle.ViewModel
 
-class SharedState : ViewModel() {
-    public var start = false
 
-
+object SharedState {
+    public var buttonState = 0
+    // 0 unpressed
+    // 1 pressed
+    // 2 stop translation
 }

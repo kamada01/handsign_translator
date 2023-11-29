@@ -49,7 +49,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
+class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
 
     companion object {
         private const val TAG = "Hand Landmarker"
@@ -239,34 +239,46 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
     // image height/width to scale and place the landmarks properly through
     // OverlayView
     var text = ""
-    private val sharedState: SharedState by activityViewModels()
 
-    private fun getWord(prediction : String): List<String>? {
+    private fun getWord(prediction : String): String? {
         val suggestion = mainActivity?.spellChecker?.suggest(prediction,1)
-        return suggestion
+        if (suggestion.isNullOrEmpty()) {
+            return prediction
+        } else {
+            return suggestion[0]
+        }
     }
     override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
                 val resultsTextView = activity?.findViewById<TextView>(R.id.resultTextView)
                 val startButton = activity?.findViewById<Button>(R.id.start_button)
-                if (sharedState.start) {
+                if (SharedState.buttonState == 1) {
                     if (text == "") {
                         text += resultBundle.gestures
                     } else if(text[text.length - 1].toString() != resultBundle.gestures) {
                         text += resultBundle.gestures
                     }
-//                    var correctedWordList = getWord(text)
-//                    if (!correctedWordList.isNullOrEmpty()) {
-//                        resultsTextView?.text = correctedWordList.get(0)
-//                        text = correctedWordList.get(0)
-//                    }
                     resultsTextView?.text = text
                     startButton?.text = "Stop"
-                } else {
+                } else if (SharedState.buttonState == 0){
                     resultsTextView?.text = "Press Button"
                     text = ""
                     startButton?.text = "Translate"
+                } else if (SharedState.buttonState == 2){
+                    var correctedWord = getWord(text)
+                    if (correctedWord != null) {
+                        Log.d("corrected word", correctedWord)
+                    } else {
+                        Log.d("corrected word", "IS NULL")
+                    }
+                    if (!correctedWord.isNullOrEmpty()) {
+                        resultsTextView?.text = correctedWord
+                        text = correctedWord
+                    }
+                    var result = text
+                    resultsTextView?.text = result
+                    startButton?.text = "Again"
                 }
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
@@ -274,7 +286,6 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener {
                     resultBundle.inputImageWidth,
                     RunningMode.LIVE_STREAM
                 )
-
                 // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
             }

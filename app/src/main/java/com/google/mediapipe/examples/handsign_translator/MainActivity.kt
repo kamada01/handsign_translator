@@ -25,13 +25,12 @@ import com.google.mediapipe.examples.handsign_translator.databinding.ActivityMai
 import java.io.IOException
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
     private lateinit var activityMainBinding: ActivityMainBinding
     private lateinit var handLandmarkerHelper: HandLandmarkerHelper
     private lateinit var mainViewModel: MainViewModel
     private lateinit var resultTextView: TextView
     private lateinit var startButton: Button
-    private val sharedState: SharedState by viewModels()
     var spellChecker: SpellChecker? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,15 +48,17 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             throw IOException("Error reading word txt: ${e}")
         }
-
         startButton = findViewById(R.id.start_button)
         startButton.text = "Translate"
         startButton.setOnClickListener() {
-            sharedState.start = !sharedState.start
+            if (SharedState.buttonState == 0) {
+                SharedState.buttonState = 1
+            } else if (SharedState.buttonState == 1) {
+                SharedState.buttonState = 2
+            } else if (SharedState.buttonState == 2) {
+                SharedState.buttonState = 0
+            }
         }
 
     }
-
-
-
 }
