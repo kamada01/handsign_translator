@@ -189,8 +189,18 @@ class HandLandmarkerHelper(
         return stringBuilder.toString()
     }
 
+//    private var startProcessingTime = SystemClock.elapsedRealtime()
+//    private var counter = 0
     private fun classifyGestures(handLandmarks: MutableList<MutableList<NormalizedLandmark>>): String {
-        val startProcessingTime = SystemClock.elapsedRealtime()
+//        runs around 30 FPS based on expermeintal results
+//        counter += 1
+//        val endProcessingTime = SystemClock.elapsedRealtime()
+//        if (endProcessingTime - startProcessingTime >= 1000) {
+//            Log.d("FPS",counter.toString())
+//
+//            counter = 0
+//            startProcessingTime = SystemClock.elapsedRealtime()
+//        }
         val inputTensor = gestureClassifier!!.getInputTensor(0)
         val inputShape = inputTensor.shape()
         val inputDataType = inputTensor.dataType()
@@ -294,10 +304,10 @@ class HandLandmarkerHelper(
                 }
             }
         }
-
+        // ten frames are cleared
         tenframes.clear()
 
-        val endProcessingTime = SystemClock.elapsedRealtime()
+//        val endProcessingTime = SystemClock.elapsedRealtime()
         //Log.d(TAG, "Processing time: ${endProcessingTime - startProcessingTime} ms")
 
         return predictedAlphabet
@@ -442,7 +452,7 @@ class HandLandmarkerHelper(
         detectAsync(mpImage, frameTime)
 
         val endProcessingTime = SystemClock.elapsedRealtime()
-        //Log.d(TAG, "Total processing time: ${endProcessingTime - startProcessingTime} ms")
+//        Log.d(TAG, "Total processing time: ${endProcessingTime - startProcessingTime} ms")
     }
 
     // Run hand hand landmark using MediaPipe Hand Landmarker API
