@@ -18,6 +18,7 @@ package com.google.mediapipe.examples.handsign_translator.fragment
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -42,9 +43,11 @@ import com.google.mediapipe.examples.handsign_translator.MainViewModel
 import com.google.mediapipe.examples.handsign_translator.R
 import com.google.mediapipe.examples.handsign_translator.SharedState
 import com.google.mediapipe.examples.handsign_translator.SpellChecker
+import com.google.mediapipe.examples.handsign_translator.Word
 import com.google.mediapipe.examples.handsign_translator.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.io.IOException
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -238,16 +241,58 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
     // Update UI after hand have been detected. Extracts original
     // image height/width to scale and place the landmarks properly through
     // OverlayView
-    var text = ""
 
-    private fun getWord(prediction : String): String? {
+    private fun generatePermutations(word: String, pairings: Map<Char, List<Char>>): () -> List<String> {
+        val permutations = mutableListOf<String>()
+
+        fun permute(current: String, index: Int) {
+            if (index == word.length) {
+                permutations.add(current)
+                return
+            }
+            val currentChar = word[index]
+            val options = pairings[currentChar] ?: listOf(currentChar)
+
+            for (option in options) {
+                permute(current + option, index + 1)
+            }
+        }
+
+        return { permute("", 0); permutations }
+    }
+
+    private var text = ""
+    private fun getWord(prediction : String): Pair<String,Boolean> {
         val suggestion = mainActivity?.spellChecker?.suggest(prediction,1)
-        if (suggestion.isNullOrEmpty()) {
-            return prediction
+
+        return if (suggestion.isNullOrEmpty()) {
+            Pair(prediction,false)
         } else {
-            return suggestion[0]
+            Pair(suggestion[0],true)
         }
     }
+    private fun numberOfChanges(reference: String, new: String): Int {
+        var counter = 0
+        for (i in reference.indices) {
+            if ( i < new.length) {
+                if (reference[i] != new[i]) {
+                    counter += 1
+                }
+            } else {
+                counter += 1
+            }
+        }
+        return counter
+    }
+//    var stored : MutableList<String> = mutableListOf()
+//    private var startProcessingTime = SystemClock.elapsedRealtime()
+    // denotes common confused
+    private val pairings = mapOf(
+        'm' to listOf('m', 'n'),
+        'e' to listOf('e', 'o'),
+        'v' to listOf('v', 'k'),
+        'h' to listOf('h', 'k'),
+    )
     override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
@@ -262,22 +307,32 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
                     resultsTextView?.text = text
                     startButton?.text = "Stop"
                 } else if (SharedState.buttonState == 0){
-                    resultsTextView?.text = "Press Button"
                     text = ""
+                    resultsTextView?.text = "Press Button"
                     startButton?.text = "Translate"
                 } else if (SharedState.buttonState == 2){
-                    var correctedWord = getWord(text)
-                    if (correctedWord != null) {
-                        Log.d("corrected word", correctedWord)
-                    } else {
-                        Log.d("corrected word", "IS NULL")
+                    var correctedWord = text
+                    if (text.length <= 7) {
+                        val permutations = generatePermutations(text, pairings)()
+                        val listOfWords : MutableList<Word> = mutableListOf()
+                        for (permutation in permutations) {
+                            var (word, valid) = getWord(permutation)
+                            if (valid) {
+                                if (permutation == word) {
+                                    listOfWords.add(Word(word, 0))
+                                } else {
+                                    listOfWords.add(Word(word,numberOfChanges(text,word)))
+                                }
+                            }
+                        }
+//                        Log.d("permutations", permutations.toString())
+                        Log.d("list of words",listOfWords.toString())
+                        if (listOfWords.size > 0) {
+                            listOfWords.sortBy { it.counter }
+                            correctedWord = listOfWords[0].word
+                        }
                     }
-                    if (!correctedWord.isNullOrEmpty()) {
-                        resultsTextView?.text = correctedWord
-                        text = correctedWord
-                    }
-                    var result = text
-                    resultsTextView?.text = result
+                    resultsTextView?.text = correctedWord
                     startButton?.text = "Again"
                 }
                 fragmentCameraBinding.overlay.setResults(

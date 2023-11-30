@@ -112,8 +112,6 @@ class HandLandmarkerHelper(
     private val alphabet = charArrayOf('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
         'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z')
 
-    private val tenframes: MutableList<MutableList<Double>> =  mutableListOf(mutableListOf())
-
     private fun convertDoubleListToFloat(originalList: MutableList<MutableList<Double>>): MutableList<MutableList<Float>> {
         val floatList: MutableList<MutableList<Float>> = mutableListOf()
 
@@ -214,7 +212,7 @@ class HandLandmarkerHelper(
                 anglePenalty = square(abs(theta_2 - theta_1 ))
             }
         }
-        return euclidianPenalty + anglePenalty
+        return euclidianPenalty* 0.5 + anglePenalty * 2
     }
 
     private fun LandmarkToTensorInput(handLandmarks: MutableList<MutableList<NormalizedLandmark>>) : MutableList<Double> {
@@ -310,13 +308,7 @@ class HandLandmarkerHelper(
                 }
             }
         }
-        // ten frames are cleared
-//        tenframes.clear()
-
-//        val endProcessingTime = SystemClock.elapsedRealtime()
-        //Log.d(TAG, "Processing time: ${endProcessingTime - startProcessingTime} ms")
-
-        return predictedAlphabet
+        return predictedAlphabet.lowercase()
     }
 
     fun clearHandLandmarker() {
@@ -474,7 +466,7 @@ class HandLandmarkerHelper(
     var reference : MutableList<Double> = mutableListOf()
     var tenFrames : MutableList<MutableList<Double>> = mutableListOf()
     var start = true
-    var PENALTY_THRESHOLD = 300
+    var PENALTY_THRESHOLD = 200
     private fun returnLivestreamResult(
         result: HandLandmarkerResult,
         input: MPImage
@@ -497,7 +489,6 @@ class HandLandmarkerHelper(
                 }
                 var tenFrames : MutableList<MutableList<Double>> = mutableListOf(reference,reference,reference,reference,reference,reference,reference,reference,reference,reference)
                 predictedAlphabet = classifyGestures(tenFrames)
-//                Log.d("Test inference",predictedAlphabet)
             }
         }
         handLandmarkerHelperListener?.onResults(

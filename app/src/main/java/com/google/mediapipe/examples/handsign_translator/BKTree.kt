@@ -38,12 +38,8 @@ class BKTree( private val distanceFunc : (String,String) -> Int ) {
 
         if( root != null ) {
             val suggestion = getSpellSuggestion(root!!, word.decapitalize(), tolerance)
-            if( suggestion.size == 1 && suggestion[0].decapitalize().equals(word) )
-                return listOf()
-            else
-                return suggestion
+            return suggestion
         }
-
         return listOf()
 
     }
