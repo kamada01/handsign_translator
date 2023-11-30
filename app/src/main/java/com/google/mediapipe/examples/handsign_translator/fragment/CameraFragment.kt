@@ -289,9 +289,13 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
     // denotes common confused
     private val pairings = mapOf(
         'm' to listOf('m', 'n'),
+        'n' to listOf('m', 'n'),
         'e' to listOf('e', 'o'),
+        'o' to listOf('e', 'o'),
         'v' to listOf('v', 'k'),
+        'k' to listOf('v', 'k'),
         'h' to listOf('h', 'k'),
+        'k' to listOf('h', 'k'),
     )
     override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
         activity?.runOnUiThread {
