@@ -289,9 +289,7 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
     // denotes common confused
     private val pairings = mapOf(
         'm' to listOf('m', 'n'),
-        'm' to listOf('m', 't'),
         'n' to listOf('m', 'n'),
-        'n' to listOf('t', 'n'),
         'e' to listOf('e', 'o'),
         'o' to listOf('e', 'o'),
         'v' to listOf('v', 'k'),
