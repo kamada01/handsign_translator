@@ -197,13 +197,11 @@ class HandLandmarkerHelper(
                 if ((i + 1) % 3 == 0) {
                     var x_1 = frameOne[i - 2]
                     var y_1 = frameOne[i - 1]
-                    var z_1 = frameOne[i]
 
                     var x_2 = frameTwo[i - 2]
                     var y_2 = frameTwo[i - 1]
-                    var z_2 = frameTwo[i]
 
-                    euclidianPenalty += sqrt(square(x_2 - x_1) + square(y_2 - y_1) + square(z_2 - z_1))
+                    euclidianPenalty += sqrt(square(x_2 - x_1) + square(y_2 - y_1))
                 }
             } else {
                 // calculate quadratic penalty between the angles

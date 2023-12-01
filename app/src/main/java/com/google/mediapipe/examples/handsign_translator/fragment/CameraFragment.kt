@@ -289,14 +289,17 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
     // denotes common confused
     private val pairings = mapOf(
         'm' to listOf('m', 'n'),
+        'm' to listOf('m', 't'),
         'n' to listOf('m', 'n'),
+        'n' to listOf('t', 'n'),
         'e' to listOf('e', 'o'),
         'o' to listOf('e', 'o'),
         'v' to listOf('v', 'k'),
         'k' to listOf('v', 'k'),
-        'h' to listOf('h', 'k'),
         'k' to listOf('h', 'k'),
+        'h' to listOf('h', 'k'),
     )
+    private var haveWord = false
     override fun onResults( resultBundle: HandLandmarkerHelper.ResultBundle ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
@@ -312,32 +315,34 @@ class CameraFragment : Fragment(), HandLandmarkerHelper.LandmarkerListener{
                     startButton?.text = "Stop"
                 } else if (SharedState.buttonState == 0){
                     text = ""
+                    haveWord = false
                     resultsTextView?.text = "Press Button"
                     startButton?.text = "Translate"
                 } else if (SharedState.buttonState == 2){
-                    var correctedWord = text
-                    if (text.length <= 7) {
-                        val permutations = generatePermutations(text, pairings)()
-                        val listOfWords : MutableList<Word> = mutableListOf()
-                        for (permutation in permutations) {
-                            var (word, valid) = getWord(permutation)
-                            if (valid) {
-                                if (permutation == word) {
-                                    listOfWords.add(Word(word, 0))
-                                } else {
-                                    listOfWords.add(Word(word,numberOfChanges(text,word)))
+                    if (!haveWord) {
+                        var correctedWord = text
+                        if (text.length <= 7) {
+                            val permutations = generatePermutations(text, pairings)()
+                            val listOfWords : MutableList<Word> = mutableListOf()
+                            for (permutation in permutations) {
+                                var (word, valid) = getWord(permutation)
+                                if (valid) {
+                                    if (permutation == word) {
+                                        listOfWords.add(Word(word, 0))
+                                    } else {
+                                        listOfWords.add(Word(word,numberOfChanges(text,word)))
+                                    }
                                 }
                             }
+                            if (listOfWords.size > 0) {
+                                listOfWords.sortBy { it.counter }
+                                correctedWord = listOfWords[0].word
+                            }
                         }
-//                        Log.d("permutations", permutations.toString())
-                        Log.d("list of words",listOfWords.toString())
-                        if (listOfWords.size > 0) {
-                            listOfWords.sortBy { it.counter }
-                            correctedWord = listOfWords[0].word
-                        }
+                        resultsTextView?.text = correctedWord
+                        startButton?.text = "Again"
+                        haveWord = true
                     }
-                    resultsTextView?.text = correctedWord
-                    startButton?.text = "Again"
                 }
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.results.first(),
