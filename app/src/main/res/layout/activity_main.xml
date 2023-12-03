@@ -29,25 +29,84 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="405dp"
-            android:layout_height="63dp"
-            android:src="@drawable/media_pipe_banner"/>
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:src="@drawable/media_pipe_banner" />
 
         <TextView
             android:id="@+id/resultTextView"
-            android:layout_width="406dp"
-            android:layout_height="53dp"
+            android:layout_width="match_parent"
+            android:layout_height="135dp"
             android:layout_above="@+id/fragment_container"
             android:layout_below="@+id/imageView"
             android:layout_marginStart="5dp"
             android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="-11dp"
             android:layout_marginEnd="0dp"
             android:layout_marginRight="50dp"
-            android:layout_marginBottom="1dp"
+            android:layout_marginBottom="148dp"
             android:layout_weight="1.0"
             android:textAlignment="center"
-            android:textSize="31sp" />
+            android:textSize="31sp"
+            android:text="Hello"/>
+
+        <TextView
+            android:id="@+id/translatedText"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_above="@+id/optionsLl"
+            android:layout_marginBottom="2dp"
+            android:text="hello"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/optionsLl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/translatebtn"
+            android:layout_marginBottom="-2dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="30dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/srcLangBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="English"
+                app:cornerRadius="20dp" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:padding="10dp"
+                android:src="@drawable/arrow" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/desLangBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Korean"
+                app:cornerRadius="20dp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/translatebtn"
+            android:layout_width="352dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/fragment_container"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="28dp"
+            android:layout_marginEnd="31dp"
+            android:layout_marginBottom="2dp"
+            android:text="Translate"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/translate" />
 
         <Button
             android:id="@+id/start_button"
@@ -56,19 +115,19 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="139dp"
-            android:layout_marginEnd="139dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginStart="141dp"
+            android:layout_marginEnd="137dp"
+            android:layout_marginBottom="8dp"
             android:text="Button" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_container"
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
-            android:layout_height="504dp"
+            android:layout_height="534dp"
             android:layout_above="@+id/start_button"
             android:layout_marginEnd="0dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="2dp"
             android:background="@android:color/transparent"
             android:keepScreenOn="true"
             app:defaultNavHost="true"
@@ -77,3 +136,5 @@
     </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
