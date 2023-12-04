@@ -31,7 +31,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:src="@drawable/media_pipe_banner" />
+            android:src="@drawable/test" />
 
         <TextView
             android:id="@+id/resultTextView"
